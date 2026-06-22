@@ -527,7 +527,7 @@
       "items": {
         "display_device_prep": {
           "description": "Sunshine will change the host display topology when a stream starts. This can affect the local monitor layout.",
-          "only_display_description": "Sunshine will disable other displays and keep only the selected display active. If the selected display is unavailable, the host may appear blank locally.",
+          "only_display_description": "Sunshine will disable other displays and keep only the selected display active. If the selected display is unavailable, the host may appear blank locally. Hosts with DisplayPort or USB-C DP physical monitors may experience periodic stutter caused by hot-plug or automatic input scanning; if this happens, use Primary/Secondary Display Streaming or disable automatic input scanning/detection in the monitor menu.",
           "recovery": "If the display state is wrong, restore this option to Disabled or use the Troubleshooting page to reset display device persistence.",
           "title": "Display topology will be changed"
         },

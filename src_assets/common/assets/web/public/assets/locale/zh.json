@@ -527,7 +527,7 @@
       "items": {
         "display_device_prep": {
           "description": "串流开始时 Sunshine 会改动主机显示器拓扑，可能影响本机显示布局。",
-          "only_display_description": "Sunshine 会停用其他显示器，只保留指定显示器。如果目标显示器不可用，本机画面可能变黑。",
+          "only_display_description": "Sunshine 会停用其他显示器，只保留指定显示器。如果目标显示器不可用，本机画面可能变黑。若主机连接 DisplayPort 或 USB-C DP 物理显示器，可能因热插拔或自动输入源扫描出现周期性卡顿；遇到此问题请改用主屏/副屏串流，或在显示器菜单中关闭自动输入源扫描/自动检测。",
           "recovery": "如果显示状态异常，请改回“禁用”，或到故障排除页面重置显示设备记忆。",
           "title": "将改动显示器拓扑"
         },
