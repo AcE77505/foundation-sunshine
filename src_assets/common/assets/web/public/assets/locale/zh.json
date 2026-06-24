@@ -161,7 +161,11 @@
     "wait_all": "等待所有应用进程终止",
     "wait_all_desc": "串流将持续到应用启动的所有进程终止。未选中时，串流将在初始应用进程终止时停止，即使其他进程仍在运行。",
     "working_dir": "工作目录",
-    "working_dir_desc": "传递给进程的工作目录。某些应用使用工作目录搜索配置文件。未设置时默认使用命令的父目录。"
+    "working_dir_desc": "传递给进程的工作目录。某些应用使用工作目录搜索配置文件。未设置时默认使用命令的父目录。",
+    "restore_default_apps": "还原内置应用",
+    "restore_default_apps_failed": "还原内置应用失败",
+    "restore_default_apps_none": "内置应用已是默认状态",
+    "restore_default_apps_result": "已还原 {restored} 个内置应用，新增 {added} 个"
   },
   "config": {
     "adapter_name": "适配器名称",

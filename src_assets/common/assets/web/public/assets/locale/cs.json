@@ -161,7 +161,11 @@
     "wait_all": "Pokračujte ve streamování, dokud se neukončí všechny procesy aplikace",
     "wait_all_desc": "Streamování bude pokračovat, dokud nebudou ukončeny všechny procesy spuštěné aplikací. Pokud není zaškrtnuto, streamování se zastaví, jakmile se ukončí počáteční proces aplikace, i když ostatní procesy aplikace stále běží.",
     "working_dir": "Pracovní adresář",
-    "working_dir_desc": "Pracovní adresář, který má být předán procesu. Některé aplikace například používají pracovní adresář k vyhledávání konfiguračních souborů. Pokud není nastaven, bude Sunshine implicitně nastaven na nadřazený adresář příkazu"
+    "working_dir_desc": "Pracovní adresář, který má být předán procesu. Některé aplikace například používají pracovní adresář k vyhledávání konfiguračních souborů. Pokud není nastaven, bude Sunshine implicitně nastaven na nadřazený adresář příkazu",
+    "restore_default_apps": "Restore built-in apps",
+    "restore_default_apps_failed": "Failed to restore built-in apps",
+    "restore_default_apps_none": "Built-in apps are already restored",
+    "restore_default_apps_result": "Restored {restored} built-in apps, added {added}"
   },
   "config": {
     "adapter_name": "Název adaptéru",

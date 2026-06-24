@@ -455,6 +455,7 @@
 
 <script>
 import { trackEvents } from '../config/firebase.js'
+import { apiFetch, apiJson } from '../utils/apiFetch.js'
 import { openExternalUrl } from '../utils/helpers.js'
 import { detectSystemLocale } from '../config/i18n.js'
 
@@ -581,14 +582,11 @@ export default {
     },
     async saveLanguage() {
       try {
-        await fetch('/api/config', {
+        await apiFetch('/api/config', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+          body: {
             locale: this.selectedLocale
-          }),
+          },
         })
         // 重新加载页面以应用新语言
         window.location.reload()
@@ -602,7 +600,7 @@ export default {
 
       try {
         // 先获取当前完整配置，保留所有已有设置
-        const currentConfig = await fetch('/api/config').then(r => r.json())
+        const currentConfig = await apiJson('/api/config')
         
         // 从完整配置中复制所有字段，避免覆盖其他配置
         const config = { ...currentConfig }
@@ -628,12 +626,9 @@ export default {
 
         console.log('保存配置:', config)
 
-        const response = await fetch('/api/config', {
+        const response = await apiFetch('/api/config', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(config),
+          body: config,
         })
 
         if (response.ok) {
@@ -704,19 +699,16 @@ export default {
 
       try {
         // 先获取当前完整配置，保留所有已有设置
-        const currentConfig = await fetch('/api/config').then(r => r.json())
+        const currentConfig = await apiJson('/api/config')
         
         // 从完整配置中复制所有字段，避免覆盖其他配置
         const config = { ...currentConfig }
         // 标记新手引导已完成
         config.setup_wizard_completed = true
         console.log('跳过新手引导，保存配置:', config)
-        const response = await fetch('/api/config', {
+        const response = await apiFetch('/api/config', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(config),
+          body: config,
         })
 
         if (response.ok) {
@@ -755,7 +747,7 @@ export default {
     async triggerRestartAndRedirect() {
       // 调用重启 API
       try {
-        await fetch('/api/restart', { method: 'POST' })
+        await apiFetch('/api/restart', { method: 'POST' })
       } catch {
         // 重启请求可能会断开连接，忽略错误
       }

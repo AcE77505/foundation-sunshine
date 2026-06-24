@@ -4,9 +4,7 @@ import { APP_CONSTANTS, ENV_VARS_CONFIG } from '../utils/constants.js'
 import { debounce, deepClone } from '../utils/helpers.js'
 import { trackEvents } from '../config/firebase.js'
 import {
-  applyCoverToGameResource,
   applyGameLibraryOverrides,
-  findGameLibraryCover,
   GAME_LIBRARY_SKILL_IDS,
   getDefaultEnabledGameLibrarySkillIds,
   getGameLibraryCapabilityIcon,
@@ -100,9 +98,6 @@ export function useApps() {
     },
     extractIcons: true,
   })
-  const scannedAppsSearchQuery = ref('')
-  const showGamesOnly = ref(false)
-  const selectedAppType = ref('all') // 'all', 'executable', 'shortcut', 'batch', 'command', 'url'
   const enabledGameLibrarySkillIds = ref(loadEnabledGameLibrarySkillIds())
   const deleteConfirmIndex = ref(null)
 
@@ -113,13 +108,27 @@ export function useApps() {
   const selectedIndices = ref(new Set())
   const batchDeleteConfirm = ref(false)
   const isBatchDeleting = ref(false)
+  const appRenderKeys = new WeakMap()
+  let nextAppRenderKey = 0
 
   // 计算属性
   const messageClass = computed(() => ({
     [`alert-${messageType.value}`]: true,
   }))
 
+  const normalizeAppForChangeCheck = (app) => {
+    const { index, ...rest } = app
+    return rest
+  }
+
   const filteredApps = computed(() => AppService.searchApps(apps.value, committedSearchQuery.value))
+  const appIndexByReference = computed(() => new Map(apps.value.map((app, index) => [app, index])))
+  const filteredAppsWithIndex = computed(() =>
+    filteredApps.value.map((app) => ({
+      app,
+      index: appIndexByReference.value.get(app) ?? -1,
+    }))
+  )
   const selectableGameLibrarySkills = computed(() => getGameLibrarySelectableCapabilities())
   const scanProgressPercent = computed(() => {
     if (!scanProgress.active || scanProgress.indeterminate || !scanProgress.total) return 0
@@ -353,7 +362,14 @@ export function useApps() {
   }
 
   // 应用操作
-  const getOriginalIndex = (app) => apps.value.indexOf(app)
+  const getAppRenderKey = (app) => {
+    const existingKey = appRenderKeys.get(app)
+    if (existingKey) return existingKey
+
+    const key = `app-${++nextAppRenderKey}`
+    appRenderKeys.set(app, key)
+    return key
+  }
 
   const newApp = () => {
     trackEvents.userAction('new_app_clicked')
@@ -440,9 +456,8 @@ export function useApps() {
   // 全选/反选
   const selectAllFiltered = () => {
     const next = new Set(selectedIndices.value)
-    filteredApps.value.forEach((app) => {
-      const i = apps.value.indexOf(app)
-      if (i >= 0) next.add(i)
+    filteredAppsWithIndex.value.forEach(({ index }) => {
+      if (index >= 0) next.add(index)
     })
     selectedIndices.value = next
   }
@@ -489,21 +504,21 @@ export function useApps() {
   }
 
   // 检测是否有未保存的更改
-  const hasUnsavedChanges = () => {
+  const hasUnsavedChanges = computed(() => {
     if (apps.value.length !== originalApps.value.length) {
       return true
     }
   
     // 深度比较应用列表
-    const appsStr = JSON.stringify(apps.value.map(app => ({ ...app, index: undefined })))
-    const originalStr = JSON.stringify(originalApps.value.map(app => ({ ...app, index: undefined })))
+    const appsStr = JSON.stringify(apps.value.map(normalizeAppForChangeCheck))
+    const originalStr = JSON.stringify(originalApps.value.map(normalizeAppForChangeCheck))
     
     return appsStr !== originalStr
-  }
+  })
 
   const save = async () => {
     // 如果没有更改，直接返回
-    if (!hasUnsavedChanges()) {
+    if (!hasUnsavedChanges.value) {
       showMessage('没有需要保存的更改', APP_CONSTANTS.MESSAGE_TYPES.INFO)
       return
     }
@@ -524,6 +539,36 @@ export function useApps() {
   }
 
   // 拖拽排序
+  const restoreDefaultApps = async () => {
+    try {
+      const result = AppService.restoreDefaultBuiltInApps(apps.value, platform.value)
+
+      if (result.changed === 0) {
+        showMessage(translate('apps.restore_default_apps_none'), APP_CONSTANTS.MESSAGE_TYPES.INFO)
+        return
+      }
+
+      isSaving.value = true
+      apps.value = result.apps
+      await AppService.saveApps(apps.value, null)
+      await loadApps()
+      showMessage(
+        translate('apps.restore_default_apps_result', { restored: result.restored, added: result.added }),
+        APP_CONSTANTS.MESSAGE_TYPES.SUCCESS
+      )
+      trackEvents.userAction('default_apps_restored', {
+        platform: platform.value,
+        restored: result.restored,
+        added: result.added,
+      })
+    } catch (error) {
+      console.error('Restore default apps failed:', error)
+      showMessage(translate('apps.restore_default_apps_failed'), APP_CONSTANTS.MESSAGE_TYPES.ERROR)
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   const onDragStart = () => {
     isDragging.value = true
   }
@@ -760,8 +805,6 @@ export function useApps() {
   // 扫描应用字段处理
   const getScannedAppField = (app, field) => app[field] || app[field.replace(/-/g, '_')] || ''
 
-  const getScannedAppImage = (app) => getScannedAppField(app, 'image-path')
-
   const createAppFromScanned = (scannedApp) => ({
     ...APP_CONSTANTS.DEFAULT_APP,
     name: scannedApp.name,
@@ -842,78 +885,12 @@ export function useApps() {
   const closeScanResult = () => {
     showScanResult.value = false
     scannedApps.value = []
-    scannedAppsSearchQuery.value = ''
-    showGamesOnly.value = false
-    selectedAppType.value = 'all'
   }
-
-  // 获取各分类的统计信息
-  const scanResultStats = computed(() => ({
-    all: scannedApps.value.length,
-    games: scannedApps.value.filter((app) => app['is-game'] === true).length,
-    executable: scannedApps.value.filter((app) => app['app-type'] === 'executable').length,
-    shortcut: scannedApps.value.filter((app) => app['app-type'] === 'shortcut').length,
-    batch: scannedApps.value.filter((app) => app['app-type'] === 'batch').length,
-    command: scannedApps.value.filter((app) => app['app-type'] === 'command').length,
-    url: scannedApps.value.filter((app) => app['app-type'] === 'url').length,
-    steam: scannedApps.value.filter((app) => app['app-type'] === 'steam').length,
-    epic: scannedApps.value.filter((app) => app['app-type'] === 'epic').length,
-    gog: scannedApps.value.filter((app) => app['app-type'] === 'gog').length,
-  }))
-
-  // 过滤扫描结果
-  const filteredScannedApps = computed(() => {
-    let filtered = scannedApps.value
-    
-    // 先按应用类型过滤
-    if (selectedAppType.value !== 'all') {
-      filtered = filtered.filter((app) => app['app-type'] === selectedAppType.value)
-    }
-    
-    // 再按游戏过滤
-    if (showGamesOnly.value) {
-      filtered = filtered.filter((app) => app['is-game'] === true)
-    }
-    
-    // 最后按搜索关键词过滤
-    if (scannedAppsSearchQuery.value) {
-      const query = scannedAppsSearchQuery.value.toLowerCase()
-      filtered = filtered.filter((app) => {
-        const name = (app.name || '').toLowerCase()
-        const cmd = (app.cmd || '').toLowerCase()
-        const sourcePath = (app.source_path || '').toLowerCase()
-        return name.includes(query) || cmd.includes(query) || sourcePath.includes(query)
-      })
-    }
-    
-    return filtered
-  })
 
   const removeScannedApp = (index) => {
     scannedApps.value.splice(index, 1)
     if (scannedApps.value.length === 0) {
       showScanResult.value = false
-    }
-  }
-
-  const searchCoverForScannedApp = async (index) => {
-    const app = scannedApps.value[index]
-    if (!app) return
-
-    try {
-      showMessage(`正在搜索封面: ${app.name}`, APP_CONSTANTS.MESSAGE_TYPES.INFO)
-      const cover = await findGameLibraryCover(app)
-      const imagePath = cover?.saveUrl || cover?.url || ''
-
-      if (imagePath) {
-        scannedApps.value[index] = applyCoverToGameResource(app, cover)
-        showMessage(`已找到封面: ${app.name}`, APP_CONSTANTS.MESSAGE_TYPES.SUCCESS)
-      } else {
-        showMessage(`未找到封面: ${app.name}`, APP_CONSTANTS.MESSAGE_TYPES.WARNING)
-      }
-    } catch (error) {
-      console.error('搜索封面失败:', error)
-      showMessage('搜索封面失败', APP_CONSTANTS.MESSAGE_TYPES.ERROR)
     }
   }
 
@@ -924,6 +901,7 @@ export function useApps() {
     // 状态
     apps,
     filteredApps,
+    filteredAppsWithIndex,
     searchQuery,
     editingApp,
     platform,
@@ -931,7 +909,6 @@ export function useApps() {
     isDragging,
     viewMode,
     message,
-    messageType,
     envVars,
     debouncedSearch,
     isScanning,
@@ -941,10 +918,6 @@ export function useApps() {
     scanProgress,
     scanOptions,
     scanPlatformOptions,
-    scannedAppsSearchQuery,
-    showGamesOnly,
-    selectedAppType,
-    enabledGameLibrarySkillIds,
     selectableGameLibrarySkills,
     selectionMode,
     selectedIndices,
@@ -952,22 +925,18 @@ export function useApps() {
     isBatchDeleting,
     // 计算属性
     messageClass,
-    filteredScannedApps,
-    scanResultStats,
     scanProgressPercent,
     // 方法
     init,
     loadApps,
     loadPlatform,
-    performSearch,
     clearSearch,
-    getOriginalIndex,
+    getAppRenderKey,
     newApp,
     editApp,
     closeAppEditor,
     handleSaveApp,
     showDeleteForm,
-    deleteApp,
     cancelDeleteApp,
     confirmDeleteApp,
     deleteConfirmIndex,
@@ -980,23 +949,19 @@ export function useApps() {
     cancelBatchDelete,
     confirmBatchDelete,
     save,
+    restoreDefaultApps,
     hasUnsavedChanges,
     onDragStart,
     onDragEnd,
     openScanOptions,
     closeScanOptions,
     runConfiguredScan,
-    scanDirectory,
-    scanGameLibraries,
     addScannedApp,
     quickAddScannedApp,
     addAllScannedApps,
     closeScanResult,
     removeScannedApp,
-    getScannedAppImage,
-    searchCoverForScannedApp,
     isTauriEnv,
-    showMessage,
     isGameLibrarySkillEnabled,
     toggleGameLibrarySkill,
     getGameLibrarySkillIcon,

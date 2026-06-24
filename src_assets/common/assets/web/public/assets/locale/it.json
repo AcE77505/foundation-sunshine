@@ -161,7 +161,11 @@
     "wait_all": "Continua lo streaming fino all'uscita di tutti i processi dell'app",
     "wait_all_desc": "Questo continuerà lo streaming fino a quando tutti i processi avviati dall'app non saranno terminati. Quando non è selezionato, lo streaming si fermerà all'uscita del processo iniziale dell'app, anche se altri processi sono ancora in esecuzione.",
     "working_dir": "Directory di Lavoro",
-    "working_dir_desc": "La directory di lavoro che dovrebbe essere passata al processo. Per esempio, alcune applicazioni usano la directory di lavoro per cercare i file di configurazione. Se non impostato, Sunshine userà come predefinita la directory padre del comando"
+    "working_dir_desc": "La directory di lavoro che dovrebbe essere passata al processo. Per esempio, alcune applicazioni usano la directory di lavoro per cercare i file di configurazione. Se non impostato, Sunshine userà come predefinita la directory padre del comando",
+    "restore_default_apps": "Restore built-in apps",
+    "restore_default_apps_failed": "Failed to restore built-in apps",
+    "restore_default_apps_none": "Built-in apps are already restored",
+    "restore_default_apps_result": "Restored {restored} built-in apps, added {added}"
   },
   "config": {
     "adapter_name": "Nome Adattatore",

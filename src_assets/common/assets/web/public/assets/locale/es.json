@@ -161,7 +161,11 @@
     "wait_all": "Continuar la transmisión hasta que todos los procesos de la aplicación salgan",
     "wait_all_desc": "Esto continuará transmitiendo hasta que todos los procesos iniciados por la aplicación hayan terminado. Cuando no está marcado, la transmisión se detendrá cuando el proceso inicial de la aplicación se cierre, incluso si otros procesos de aplicación siguen ejecutándose.",
     "working_dir": "Directorio de trabajo",
-    "working_dir_desc": "El directorio de trabajo que debe pasarse al proceso. Por ejemplo, algunas aplicaciones usan el directorio de trabajo para buscar archivos de configuración. Si no se establece, Sunshine se establecerá por defecto en el directorio padre del comando"
+    "working_dir_desc": "El directorio de trabajo que debe pasarse al proceso. Por ejemplo, algunas aplicaciones usan el directorio de trabajo para buscar archivos de configuración. Si no se establece, Sunshine se establecerá por defecto en el directorio padre del comando",
+    "restore_default_apps": "Restore built-in apps",
+    "restore_default_apps_failed": "Failed to restore built-in apps",
+    "restore_default_apps_none": "Built-in apps are already restored",
+    "restore_default_apps_result": "Restored {restored} built-in apps, added {added}"
   },
   "config": {
     "adapter_name": "Nombre del adaptador",

@@ -13,10 +13,7 @@ import {
   normalizeEnabledSkillIds,
 } from '../core/agentCore.js'
 
-export {
-  applyCoverToGameResource,
-  getGameResourceKey,
-} from './skills/coverSelectionSkill.js'
+export { getGameResourceKey } from './skills/coverSelectionSkill.js'
 export {
   getGameResourceReviewReasons,
   needsGameResourceReview,
@@ -148,7 +145,6 @@ export async function runGameLibraryCuratorAgent(apps, options = {}) {
 
 const memorySkill = createScanOverrideMemorySkill()
 const titleNormalizeSkill = createGameTitleNormalizeSkill()
-const coverSelectionSkill = createCoverSelectionSkill()
 
 export function applyGameLibraryOverrides(apps) {
   return memorySkill.apply(apps)
@@ -161,8 +157,4 @@ export function rememberGameLibraryApp(scannedApp, finalApp) {
 export async function enhanceGameLibraryMetadata(apps) {
   const result = await titleNormalizeSkill.run({ apps, events: [], stats: {}, options: {} })
   return result.apps
-}
-
-export async function findGameLibraryCover(app) {
-  return coverSelectionSkill.findCover(app)
 }

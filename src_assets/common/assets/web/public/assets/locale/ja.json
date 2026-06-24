@@ -161,7 +161,11 @@
     "wait_all": "すべてのアプリプロセスが終了するまでストリーミングを続ける",
     "wait_all_desc": "これは、アプリによって開始されたすべてのプロセスが終了するまで、ストリーミングを続けます。 チェックを外すと、他のアプリプロセスがまだ実行中であっても、最初のアプリプロセスが終了するとストリーミングは停止します。",
     "working_dir": "作業ディレクトリ",
-    "working_dir_desc": "プロセスに渡される作業ディレクトリ。たとえば、アプリケーションによっては、作業ディレクトリを使用して設定ファイルを検索します。 設定されていない場合、Sunshineはデフォルトでコマンドの親ディレクトリを使用します。"
+    "working_dir_desc": "プロセスに渡される作業ディレクトリ。たとえば、アプリケーションによっては、作業ディレクトリを使用して設定ファイルを検索します。 設定されていない場合、Sunshineはデフォルトでコマンドの親ディレクトリを使用します。",
+    "restore_default_apps": "Restore built-in apps",
+    "restore_default_apps_failed": "Failed to restore built-in apps",
+    "restore_default_apps_none": "Built-in apps are already restored",
+    "restore_default_apps_result": "Restored {restored} built-in apps, added {added}"
   },
   "config": {
     "adapter_name": "アダプター名",

@@ -10,7 +10,7 @@
             <span v-if="stats.games > 0" class="badge bg-warning text-dark ms-2">
               <i class="fas fa-gamepad me-1"></i>{{ stats.games }}
             </span>
-            <span v-if="hasActiveFilter" class="badge bg-info ms-2"> {{ t('apps.scan_result_matched', { count: filteredApps.length }) }} </span>
+            <span v-if="hasActiveFilter" class="badge bg-info ms-2"> {{ t('apps.scan_result_matched', { count: filteredAppItems.length }) }} </span>
           </h5>
           <button class="btn-close" :aria-label="t('close')" @click="$emit('close')"></button>
         </div>
@@ -176,15 +176,15 @@
             <i class="fas fa-folder-open fa-3x mb-3"></i>
             <p>{{ t('apps.scan_result_no_apps') }}</p>
           </div>
-          <div v-else-if="filteredApps.length === 0" class="text-center text-muted py-4">
+          <div v-else-if="filteredAppItems.length === 0" class="text-center text-muted py-4">
             <i class="fas fa-search fa-3x mb-3"></i>
             <p>{{ t('apps.scan_result_no_matches') }}</p>
             <p class="small">{{ t('apps.scan_result_try_different_keywords') }}</p>
           </div>
           <div v-else class="scan-result-list">
             <div
-              v-for="app in filteredApps"
-              :key="app.source_path"
+              v-for="{ app, index } in filteredAppItems"
+              :key="`${app.source_path || app.cmd || app.name}-${index}`"
               class="scan-result-item"
               :class="{ 'scan-result-item--review': needsReview(app) }"
             >
@@ -260,14 +260,14 @@
                 </button>
                 <button
                   class="btn btn-sm btn-outline-success"
-                  @click="$emit('quick-add', app, apps.indexOf(app))"
+                  @click="$emit('quick-add', app, index)"
                   :title="t('apps.scan_result_quick_add_title')"
                 >
                   <i class="fas fa-plus"></i>
                 </button>
                 <button
                   class="btn btn-sm btn-outline-danger"
-                  @click="$emit('remove', apps.indexOf(app))"
+                  @click="$emit('remove', index)"
                   :title="t('apps.scan_result_remove_title')"
                 >
                   <i class="fas fa-times"></i>
@@ -410,27 +410,27 @@ const stats = computed(() => ({
 const hasActiveFilter = computed(() => searchQuery.value || gamesOnly.value || reviewOnly.value || selectedType.value !== 'all')
 
 // 过滤后的应用列表
-const filteredApps = computed(() => {
-  let filtered = props.apps
+const filteredAppItems = computed(() => {
+  let filtered = props.apps.map((app, index) => ({ app, index }))
 
   // 按应用类型过滤
   if (selectedType.value !== 'all') {
-    filtered = filtered.filter((app) => app['app-type'] === selectedType.value)
+    filtered = filtered.filter(({ app }) => app['app-type'] === selectedType.value)
   }
 
   // 按游戏过滤
   if (gamesOnly.value) {
-    filtered = filtered.filter((app) => app['is-game'] === true)
+    filtered = filtered.filter(({ app }) => app['is-game'] === true)
   }
 
   if (reviewOnly.value) {
-    filtered = filtered.filter(needsReview)
+    filtered = filtered.filter(({ app }) => needsReview(app))
   }
 
   // 按搜索关键词过滤
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter((app) => {
+    filtered = filtered.filter(({ app }) => {
       const name = (app.name || '').toLowerCase()
       const cmd = (app.cmd || '').toLowerCase()
       const sourcePath = (app.source_path || '').toLowerCase()

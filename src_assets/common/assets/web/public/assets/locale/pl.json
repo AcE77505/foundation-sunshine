@@ -161,7 +161,11 @@
     "wait_all": "Kontynuuj przesyłanie strumieniowe, aż wszystkie procesy aplikacji zakończą działanie",
     "wait_all_desc": "Spowoduje to kontynuowanie przesyłania strumieniowego do momentu zakończenia wszystkich procesów uruchomionych przez aplikację. Jeśli opcja nie jest zaznaczona, strumień zostanie zatrzymany po zakończeniu początkowego procesu aplikacji, nawet jeśli inne procesy aplikacji są nadal uruchomione.",
     "working_dir": "Katalog roboczy",
-    "working_dir_desc": "Katalog roboczy, który powinien zostać przekazany do procesu. Na przykład, niektóre aplikacje używają katalogu roboczego do wyszukiwania plików konfiguracyjnych. Jeśli nie zostanie ustawiony, Sunshine domyślnie wybierze katalog nadrzędny polecenia"
+    "working_dir_desc": "Katalog roboczy, który powinien zostać przekazany do procesu. Na przykład, niektóre aplikacje używają katalogu roboczego do wyszukiwania plików konfiguracyjnych. Jeśli nie zostanie ustawiony, Sunshine domyślnie wybierze katalog nadrzędny polecenia",
+    "restore_default_apps": "Restore built-in apps",
+    "restore_default_apps_failed": "Failed to restore built-in apps",
+    "restore_default_apps_none": "Built-in apps are already restored",
+    "restore_default_apps_result": "Restored {restored} built-in apps, added {added}"
   },
   "config": {
     "adapter_name": "Nazwa adaptera",

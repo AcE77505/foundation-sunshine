@@ -161,7 +161,11 @@
     "wait_all": "繼續串流，直到所有應用程式處理程序結束",
     "wait_all_desc": "這會繼續串流，直到應用程式啟動的所有處理程序都結束。如果未勾選，當最初的應用程式處理程序結束時，串流就會停止，即使還有其他處理程序在運行。",
     "working_dir": "工作目錄",
-    "working_dir_desc": "這是要傳遞給處理程序的工作目錄。例如，有些應用程式會使用這個目錄來搜尋設定檔。如果沒有設定，Sunshine 會自動使用指令所在的目錄"
+    "working_dir_desc": "這是要傳遞給處理程序的工作目錄。例如，有些應用程式會使用這個目錄來搜尋設定檔。如果沒有設定，Sunshine 會自動使用指令所在的目錄",
+    "restore_default_apps": "还原内置应用",
+    "restore_default_apps_failed": "还原内置应用失败",
+    "restore_default_apps_none": "内置应用已是默认状态",
+    "restore_default_apps_result": "已还原 {restored} 个内置应用，新增 {added} 个"
   },
   "config": {
     "adapter_name": "顯示卡名稱",

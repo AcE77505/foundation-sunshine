@@ -3,7 +3,7 @@
 
 @media (max-width: 768px) {
   .apps-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: 1fr;
     gap: 15px;
   }
 
@@ -78,14 +78,18 @@
 
   .view-toggle-group {
     order: -1;
-    width: 100%;
+    width: auto;
     justify-content: center;
   }
 }
 
 @media (max-width: 576px) {
+  .app-card {
+    min-height: 270px;
+  }
+
   .app-card-inner {
-    padding: 15px;
+    padding: 16px;
   }
 
   .app-icon-container,
@@ -98,6 +102,11 @@
   .app-name {
     font-size: 1.1rem;
   }
+
+  .app-tags {
+    height: 28px;
+  }
+
   .search-container {
     margin-bottom: 1.5rem;
   }

@@ -8,6 +8,8 @@
 .apps-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-auto-rows: 1fr;
+  align-items: stretch;
   gap: 20px;
 
   .drag-handle {
@@ -53,7 +55,7 @@
   padding: 10px 16px;
   margin-bottom: 16px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(20, 24, 38, 0.46);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
 
@@ -83,6 +85,12 @@
     outline-offset: 2px;
     border-radius: 14px;
   }
+}
+
+.apps-grid .app-card-wrapper {
+  display: flex;
+  min-width: 0;
+  height: 100%;
 }
 
 .app-select-checkbox {
@@ -124,31 +132,46 @@
 // ============================================================================
 
 .app-card {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: var(--border-radius-xl);
   overflow: hidden;
   .glass-effect-light();
   .transition-default();
-  cursor: pointer;
+  cursor: default;
   position: relative;
   box-shadow: var(--box-shadow-sm);
   animation: fadeIn 0.5s ease;
   touch-action: pan-y;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 278px;
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: var(--box-shadow-lg);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.82);
+    border-color: rgba(99, 102, 241, 0.22);
+  }
+
+  [data-bs-theme='dark'] & {
+    background: rgba(20, 24, 38, 0.62);
+    border-color: rgba(255, 255, 255, 0.26);
+
+    &:hover {
+      background: rgba(24, 29, 46, 0.72);
+      border-color: rgba(255, 255, 255, 0.36);
+    }
   }
 }
 
 .app-card-inner {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   position: relative;
   padding: 20px;
+  width: 100%;
   height: 100%;
 }
 
@@ -184,11 +207,13 @@
 .app-info {
   text-align: center;
   margin-bottom: 15px;
-  cursor: pointer;
+  cursor: copy;
   position: relative;
   padding: 8px;
   border-radius: var(--border-radius-md);
   .transition-default();
+  flex: 1 1 auto;
+  min-width: 0;
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -199,6 +224,16 @@
   &:active {
     transform: translateY(0) scale(0.98);
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  [data-bs-theme='dark'] & {
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &:active {
+      background: rgba(255, 255, 255, 0.14);
+    }
   }
 
   &:not([title]),
@@ -215,20 +250,24 @@
 .app-name {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: #fff;
+  color: #172033;
   margin-bottom: 8px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   .text-ellipsis();
+
+  [data-bs-theme='dark'] & {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .app-command {
   display: inline-block;
   text-align: left;
   font-size: var(--font-size-xs);
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(51, 65, 85, 0.82);
   margin-bottom: 10px;
   font-family: 'Courier New', monospace;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(15, 23, 42, 0.08);
   padding: 5px 10px;
   border-radius: var(--border-radius-sm);
   max-width: 100%;
@@ -236,9 +275,19 @@
   .transition-default();
 
   &:hover {
-    background: rgba(0, 0, 0, 0.35);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgba(15, 23, 42, 0.12);
+    color: #172033;
     transform: translateY(-1px);
+  }
+
+  [data-bs-theme='dark'] & {
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.32);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.35);
+      color: rgba(255, 255, 255, 0.9);
+    }
   }
 }
 
@@ -248,19 +297,38 @@
 
 .app-tags {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
+  align-items: center;
   gap: 8px;
   margin-bottom: 15px;
+  height: 28px;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .app-tag {
-  background: rgba(255, 255, 255, 0.4);
-  color: #333;
+  background: rgba(255, 255, 255, 0.55);
+  color: #172033;
   padding: 4px 8px;
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-xs);
+  line-height: 1.2;
   font-weight: 500;
+  max-width: 100%;
+  min-width: 0;
+  .text-ellipsis();
+}
+
+.tag-more {
+  flex: 0 0 auto;
+  background: rgba(15, 23, 42, 0.12);
+  color: #172033;
+
+  [data-bs-theme='dark'] & {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+  }
 }
 
 // Tag variants
@@ -289,6 +357,7 @@
   display: flex;
   justify-content: center;
   gap: 10px;
+  margin-top: auto;
 
   .btn {
     .btn-rounded();

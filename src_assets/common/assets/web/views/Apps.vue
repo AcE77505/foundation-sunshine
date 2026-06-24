@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="apps-page">
     <Navbar />
     <div class="container-fluid px-4">
       <div class="my-4">
@@ -47,6 +47,16 @@
             <i class="fas fa-plus"></i>
           </button>
           <button
+            class="cute-btn cute-btn-secondary"
+            type="button"
+            @click="restoreDefaultApps"
+            :disabled="isSaving"
+            :title="$t('apps.restore_default_apps')"
+            :aria-label="$t('apps.restore_default_apps')"
+          >
+            <i class="fas fa-rotate-left"></i>
+          </button>
+          <button
             class="cute-btn"
             :class="selectionMode ? 'cute-btn-warning' : 'cute-btn-secondary'"
             type="button"
@@ -77,13 +87,13 @@
           </button>
           <button 
             class="cute-btn cute-btn-success" 
-            :class="{ 'has-changes': hasUnsavedChanges() }"
+            :class="{ 'has-changes': hasUnsavedChanges }"
             @click="save" 
-            :disabled="!hasUnsavedChanges() || isSaving"
-            :title="hasUnsavedChanges() ? $t('_common.save') : $t('_common.no_changes')"
+            :disabled="!hasUnsavedChanges || isSaving"
+            :title="hasUnsavedChanges ? $t('_common.save') : $t('_common.no_changes')"
           >
             <i class="fas fa-save"></i>
-            <span v-if="hasUnsavedChanges()" class="unsaved-indicator"></span>
+            <span v-if="hasUnsavedChanges" class="unsaved-indicator"></span>
           </button>
         </div>
 
@@ -139,7 +149,7 @@
         <draggable
           v-if="viewMode === 'grid' && !searchQuery"
           v-model="apps"
-          item-key="name"
+          :item-key="getAppRenderKey"
           class="apps-grid"
           :animation="300"
           handle=".drag-handle"
@@ -172,7 +182,6 @@
               <AppCard
                 :app="app"
                 :draggable="!selectionMode"
-                :is-drag-result="false"
                 :is-dragging="isDragging"
                 @edit="selectionMode ? toggleAppSelection(index) : editApp(index)"
                 @delete="showDeleteForm(index)"
@@ -186,31 +195,31 @@
         <!-- 网格视图 - 搜索模式 -->
         <div v-else-if="viewMode === 'grid' && searchQuery" class="apps-grid">
           <div
-            v-for="(app, index) in filteredApps"
-            :key="`search-grid-${app.name}-${index}`"
+            v-for="({ app, index: originalIndex }, index) in filteredAppsWithIndex"
+            :key="`search-grid-${app.name}-${originalIndex}-${index}`"
             class="app-card-wrapper"
-            :class="{ 'selection-mode': selectionMode, 'is-selected': isAppSelected(getOriginalIndex(app)) }"
+            :class="{ 'selection-mode': selectionMode, 'is-selected': isAppSelected(originalIndex) }"
           >
             <div
               v-if="selectionMode"
               class="app-select-checkbox"
               role="checkbox"
               tabindex="0"
-              :aria-checked="isAppSelected(getOriginalIndex(app))"
+              :aria-checked="isAppSelected(originalIndex)"
               :aria-label="$t('apps.batch_select_toggle')"
-              @click.stop="toggleAppSelection(getOriginalIndex(app))"
-              @keydown.space.prevent="toggleAppSelection(getOriginalIndex(app))"
-              @keydown.enter.prevent="toggleAppSelection(getOriginalIndex(app))"
+              @click.stop="toggleAppSelection(originalIndex)"
+              @keydown.space.prevent="toggleAppSelection(originalIndex)"
+              @keydown.enter.prevent="toggleAppSelection(originalIndex)"
             >
-              <i class="fas" :class="isAppSelected(getOriginalIndex(app)) ? 'fa-square-check' : 'fa-square'"></i>
+              <i class="fas" :class="isAppSelected(originalIndex) ? 'fa-square-check' : 'fa-square'"></i>
             </div>
             <AppCard
               :app="app"
               :draggable="false"
               :is-search-result="true"
               :is-dragging="false"
-              @edit="selectionMode ? toggleAppSelection(getOriginalIndex(app)) : editApp(getOriginalIndex(app, index))"
-              @delete="showDeleteForm(getOriginalIndex(app, index))"
+              @edit="selectionMode ? toggleAppSelection(originalIndex) : editApp(originalIndex)"
+              @delete="showDeleteForm(originalIndex)"
               @copy-success="handleCopySuccess"
               @copy-error="handleCopyError"
             />
@@ -221,7 +230,7 @@
         <draggable
           v-else-if="viewMode === 'list' && !searchQuery"
           v-model="apps"
-          item-key="name"
+          :item-key="getAppRenderKey"
           class="apps-list"
           :animation="300"
           handle=".drag-handle-list"
@@ -267,31 +276,31 @@
         <!-- 列表视图 - 搜索模式 -->
         <div v-else-if="viewMode === 'list' && searchQuery" class="apps-list">
           <div
-            v-for="(app, index) in filteredApps"
-            :key="`search-list-${app.name}-${index}`"
+            v-for="({ app, index: originalIndex }, index) in filteredAppsWithIndex"
+            :key="`search-list-${app.name}-${originalIndex}-${index}`"
             class="app-list-wrapper"
-            :class="{ 'selection-mode': selectionMode, 'is-selected': isAppSelected(getOriginalIndex(app)) }"
+            :class="{ 'selection-mode': selectionMode, 'is-selected': isAppSelected(originalIndex) }"
           >
             <div
               v-if="selectionMode"
               class="app-select-checkbox app-select-checkbox--list"
               role="checkbox"
               tabindex="0"
-              :aria-checked="isAppSelected(getOriginalIndex(app))"
+              :aria-checked="isAppSelected(originalIndex)"
               :aria-label="$t('apps.batch_select_toggle')"
-              @click.stop="toggleAppSelection(getOriginalIndex(app))"
-              @keydown.space.prevent="toggleAppSelection(getOriginalIndex(app))"
-              @keydown.enter.prevent="toggleAppSelection(getOriginalIndex(app))"
+              @click.stop="toggleAppSelection(originalIndex)"
+              @keydown.space.prevent="toggleAppSelection(originalIndex)"
+              @keydown.enter.prevent="toggleAppSelection(originalIndex)"
             >
-              <i class="fas" :class="isAppSelected(getOriginalIndex(app)) ? 'fa-square-check' : 'fa-square'"></i>
+              <i class="fas" :class="isAppSelected(originalIndex) ? 'fa-square-check' : 'fa-square'"></i>
             </div>
             <AppListItem
               :app="app"
               :draggable="false"
               :is-search-result="true"
               :is-dragging="false"
-              @edit="selectionMode ? toggleAppSelection(getOriginalIndex(app)) : editApp(getOriginalIndex(app, index))"
-              @delete="showDeleteForm(getOriginalIndex(app, index))"
+              @edit="selectionMode ? toggleAppSelection(originalIndex) : editApp(originalIndex)"
+              @delete="showDeleteForm(originalIndex)"
               @copy-success="handleCopySuccess"
               @copy-error="handleCopyError"
             />
@@ -595,6 +604,7 @@ const isLoaded = ref(false)
 const {
   apps,
   filteredApps,
+  filteredAppsWithIndex,
   searchQuery,
   editingApp,
   platform,
@@ -617,7 +627,7 @@ const {
   loadApps,
   loadPlatform,
   clearSearch,
-  getOriginalIndex,
+  getAppRenderKey,
   newApp,
   editApp,
   closeAppEditor,
@@ -640,6 +650,7 @@ const {
   confirmBatchDelete,
   save,
   hasUnsavedChanges,
+  restoreDefaultApps,
   onDragStart,
   onDragEnd,
   openScanOptions,

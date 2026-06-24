@@ -161,7 +161,11 @@
     "wait_all": "Streaming fortsetzen bis alle App-Prozesse beendet sind",
     "wait_all_desc": "Dies wird fortgesetzt, bis alle Prozesse, die von der App gestartet werden, beendet sind. Wenn diese Option deaktiviert ist, wird das Streaming gestoppt, wenn der erste App-Prozess beendet wird, auch wenn andere App-Prozesse noch laufen.",
     "working_dir": "Arbeitsverzeichnis",
-    "working_dir_desc": "Das Arbeitsverzeichnis, das an den Prozess übergeben werden soll. Zum Beispiel verwenden einige Anwendungen das Arbeitsverzeichnis, um nach Konfigurationsdateien zu suchen. Falls nicht gesetzt, wird Sunshine standardmäßig das übergeordnete Verzeichnis des Befehls verwenden"
+    "working_dir_desc": "Das Arbeitsverzeichnis, das an den Prozess übergeben werden soll. Zum Beispiel verwenden einige Anwendungen das Arbeitsverzeichnis, um nach Konfigurationsdateien zu suchen. Falls nicht gesetzt, wird Sunshine standardmäßig das übergeordnete Verzeichnis des Befehls verwenden",
+    "restore_default_apps": "Restore built-in apps",
+    "restore_default_apps_failed": "Failed to restore built-in apps",
+    "restore_default_apps_none": "Built-in apps are already restored",
+    "restore_default_apps_result": "Restored {restored} built-in apps, added {added}"
   },
   "config": {
     "adapter_name": "Adaptername",
