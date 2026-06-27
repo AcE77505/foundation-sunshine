@@ -16,12 +16,14 @@
 #include <shared_mutex>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
 // lib includes
 #include <Simple-Web-Server/server_http.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/context_base.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -35,6 +37,8 @@
 #include "confighttp.h"
 #include "display_device/session.h"
 #include "file_handler.h"
+#include "file_mapping/file_mapping_http.h"
+#include "file_mapping/service.h"
 #include "globals.h"
 #include "httpcommon.h"
 #include "logging.h"
@@ -871,6 +875,31 @@ namespace nvhttp {
     // launch will store it in host_audio
     bool host_audio {};
 
+    auto bind_address = net::get_bind_address(address_family);
+    auto is_file_mapping_client_paired = [](std::string_view client_uuid) {
+      if (client_uuid.empty()) {
+        return false;
+      }
+
+      const auto clients = nvhttp::get_all_clients();
+      for (const auto &client : clients) {
+        if (client.contains("uuid") && client["uuid"].is_string() && std::string_view { client["uuid"].get_ref<const std::string &>() } == client_uuid) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    file_mapping::service_t file_mapping_service;
+    file_mapping::service_t::config_t file_mapping_config;
+    file_mapping_config.bind_address = bind_address.empty() ? "0.0.0.0" : bind_address;
+    file_mapping_config.port = config::nvhttp.file_mapping_port;
+    file_mapping_config.certificate_file = config::nvhttp.cert;
+    file_mapping_config.private_key_file = config::nvhttp.pkey;
+    file_mapping_config.mappings_json = config::nvhttp.file_mappings;
+    file_mapping_config.authorize_client = is_file_mapping_client_paired;
+    file_mapping_service.start(std::move(file_mapping_config));
+
     https_server_t https_server { config::nvhttp.cert, config::nvhttp.pkey };
     http_server_t http_server;
 
@@ -950,6 +979,29 @@ namespace nvhttp {
     https_server.resource["^/api/v1/clipboard/blob$"]["POST"] = clipboard_api::upload_blob;
     https_server.resource["^/api/v1/clipboard/blob/([A-Za-z0-9_\\-]{1,128})$"]["GET"] = clipboard_api::get_blob;
 
+    https_server.resource["^/api/v1/file-mapping/capability$"]["GET"] =
+      [&](resp_https_t resp, req_https_t req) {
+        auto header_value = [](const SimpleWeb::CaseInsensitiveMultimap &headers, const std::string &name) {
+          auto it = headers.find(name);
+          return it == headers.end() ? std::string {} : it->second;
+        };
+        auto write_response = [](resp_https_t response, const file_mapping_http::http_response_t &out) {
+          response->write(out.status, out.body, out.headers);
+        };
+
+        write_response(
+          std::move(resp),
+          file_mapping_service.make_capability_response(
+            get_client_cert_uuid_from_request(req),
+            header_value(req->header, "host")));
+      };
+
+    https_server.resource["^/api/v1/file-mapping/session$"]["GET"] =
+      [](resp_https_t resp, req_https_t req) {
+        auto out = file_mapping_http::make_session_placeholder_response(req->header);
+        resp->write(out.status, out.body, out.headers);
+      };
+
     // ABR (Adaptive Bitrate) API routes - client-facing with cert auth
     https_server.resource["^/api/abr/capabilities$"]["GET"] = abr_api::capabilities;
     https_server.resource["^/api/abr$"]["POST"] = abr_api::configure;
@@ -959,7 +1011,7 @@ namespace nvhttp {
     https_server.resource["^/ai/completions$"]["POST"] = ai_api::completions;
 
     https_server.config.reuse_address = true;
-    https_server.config.address = net::get_bind_address(address_family);
+    https_server.config.address = bind_address;
     https_server.config.port = port_https;
     // Run nvhttps server with a small thread pool. The HTTPS endpoint serves
     // SSL handshakes + request handlers on the same io_service. With the default
@@ -1031,6 +1083,7 @@ namespace nvhttp {
     // Wait for any event
     shutdown_event->view();
 
+    file_mapping_service.stop();
     https_server.stop();
     http_server.stop();
 
