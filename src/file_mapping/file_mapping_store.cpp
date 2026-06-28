@@ -89,6 +89,26 @@ namespace file_mapping_store {
       mapping.follow_reparse_points = false;
     }
 
+    fs::path
+    normalize_incoming_path(const fs::path &path) {
+#ifdef _WIN32
+      auto native = path.wstring();
+      static constexpr std::wstring_view verbatim_prefix = L"\\\\?\\";
+      static constexpr std::wstring_view verbatim_unc_prefix = L"\\\\?\\UNC\\";
+
+      if (native.rfind(verbatim_unc_prefix, 0) == 0) {
+        native.replace(0, verbatim_unc_prefix.size(), L"\\\\");
+        return fs::path { native };
+      }
+      if (native.rfind(verbatim_prefix, 0) == 0) {
+        native.erase(0, verbatim_prefix.size());
+        return fs::path { native };
+      }
+#endif
+
+      return path;
+    }
+
     bool
     read_uintmax_patch_value(const nlohmann::json &json, std::uintmax_t &out) {
       std::uint64_t value = 0;
@@ -162,11 +182,12 @@ namespace file_mapping_store {
   mutation_result_t
   store_t::add_quick_share(const fs::path &path) {
     std::error_code ec;
-    if (path.empty() || !fs::is_directory(path, ec)) {
+    const auto normalized_path = normalize_incoming_path(path);
+    if (normalized_path.empty() || !fs::is_directory(normalized_path, ec)) {
       return { false, {}, "path is not an existing directory" };
     }
 
-    auto canonical = fs::weakly_canonical(path, ec);
+    auto canonical = fs::weakly_canonical(normalized_path, ec);
     if (ec) {
       return { false, {}, ec.message() };
     }
@@ -174,7 +195,7 @@ namespace file_mapping_store {
     std::scoped_lock lock { mutex_ };
     auto existing = std::find_if(mappings_.begin(), mappings_.end(), [&](const file_mapping::mapping_t &mapping) {
       std::error_code mapping_ec;
-      return fs::weakly_canonical(mapping.local_root, mapping_ec) == canonical && !mapping_ec;
+      return fs::weakly_canonical(normalize_incoming_path(mapping.local_root), mapping_ec) == canonical && !mapping_ec;
     });
     if (existing != mappings_.end()) {
       return { true, *existing, {} };

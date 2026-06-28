@@ -59,6 +59,26 @@ TEST(FileMappingStore, QuickShareIsIdempotentForSamePath) {
   EXPECT_EQ(store.snapshot().size(), 1);
 }
 
+#ifdef _WIN32
+TEST(FileMappingStore, QuickShareAcceptsWindowsVerbatimPath) {
+  temp_store_tree_t tree;
+  file_mapping_store::store_t store;
+
+  std::error_code ec;
+  const auto target = fs::weakly_canonical(tree.root / "Downloads", ec);
+  ASSERT_FALSE(ec) << ec.message();
+
+  auto verbatim = target.wstring();
+  if (verbatim.rfind(L"\\\\?\\", 0) != 0) {
+    verbatim = L"\\\\?\\" + verbatim;
+  }
+
+  auto result = store.add_quick_share(fs::path { verbatim });
+  ASSERT_TRUE(result.ok) << result.error;
+  EXPECT_EQ(fs::weakly_canonical(result.mapping.local_root), target);
+}
+#endif
+
 TEST(FileMappingStore, ReplaceNormalizesReadOnlyBoundary) {
   temp_store_tree_t tree;
   file_mapping_store::store_t store;
