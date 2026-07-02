@@ -5,6 +5,7 @@
 #include "file_mapping_ws.h"
 
 #include <algorithm>
+#include <exception>
 #include <optional>
 #include <sstream>
 
@@ -75,6 +76,11 @@ namespace file_mapping_ws {
         default:
           return file_mapping::rpc::operation_e::download;
       }
+    }
+
+    std::vector<file_mapping::mapping_t>
+    current_mappings(const file_mapping::operations::execution_context_t &context) {
+      return context.mapping_provider ? context.mapping_provider() : context.mappings;
     }
 
     std::optional<std::string_view>
@@ -293,18 +299,26 @@ namespace file_mapping_ws {
     state_ = session_state_e::ready;
     operations_context_.peer_uuid = peer_uuid_;
 
-    nlohmann::json reply;
-    reply["type"] = "hello";
-    reply["version"] = file_mapping::rpc::kProtocolVersion;
-    reply["endpoint"] = endpoint_name_;
-    reply["peer_accepted"] = true;
-    reply["mappings"] = nlohmann::json::array();
-    for (const auto &mapping : operations_context_.mappings) {
-      if (mapping.clients.empty() || std::find(mapping.clients.begin(), mapping.clients.end(), peer_uuid_) != mapping.clients.end()) {
-        reply["mappings"].push_back(file_mapping::operations::mapping_to_json(mapping));
+    try {
+      nlohmann::json reply;
+      reply["type"] = "hello";
+      reply["version"] = file_mapping::rpc::kProtocolVersion;
+      reply["endpoint"] = endpoint_name_;
+      reply["peer_accepted"] = true;
+      reply["mappings"] = nlohmann::json::array();
+      for (const auto &mapping : current_mappings(operations_context_)) {
+        if (mapping.clients.empty() || std::find(mapping.clients.begin(), mapping.clients.end(), peer_uuid_) != mapping.clients.end()) {
+          reply["mappings"].push_back(file_mapping::operations::mapping_to_json(mapping));
+        }
       }
+      return { true, false, {}, text_frame(std::move(reply)) };
     }
-    return { true, false, {}, text_frame(std::move(reply)) };
+    catch (const std::exception &err) {
+      return inbound_fail(std::string { "hello mapping provider failed: " } + err.what(), true);
+    }
+    catch (...) {
+      return inbound_fail("hello mapping provider failed with an unknown error", true);
+    }
   }
 
   validation_result_t

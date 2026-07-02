@@ -7,6 +7,7 @@
 #include <deque>
 #include <functional>
 #include <memory>
+#include <string>
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -53,7 +54,7 @@ namespace file_mapping_ws {
     void queue_reply(outbound_frame_t frame);
     void write_next();
     void on_write(beast::error_code ec, std::size_t bytes_transferred);
-    void close_with_error();
+    void close_with_error(const std::string &reason = {});
 
     websocket_stream_t ws_;
     beast::flat_buffer read_buffer_;
@@ -66,6 +67,7 @@ namespace file_mapping_ws {
     transport_config_t config_;
     std::function<void()> on_close_;
     std::deque<outbound_frame_t> write_queue_;
+    std::string pending_close_reason_;
     bool write_active_ = false;
     bool close_requested_ = false;
     bool socket_closed_ = false;
