@@ -285,16 +285,15 @@ jobs:
             NEWTAG="v${YEAR}.${DATE_PADDED}"
           fi
 
-          # rename and zip the full package
+          # rename the package directory
           mv artifacts/sunshine "artifacts/Sunshine.${NEWTAG}"
-          cd artifacts && 7z a "Sunshine.${NEWTAG}.zip" "Sunshine.${NEWTAG}/"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: sunshine-windows-r${{ github.run_number }}
           path: |
-            artifacts/Sunshine.*.zip
+            artifacts/Sunshine.*/
           if-no-files-found: error
 
       - name: Create/Update GitHub Release
