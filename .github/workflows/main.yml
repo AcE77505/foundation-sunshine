@@ -298,7 +298,7 @@ jobs:
           if-no-files-found: error
 
       - name: Create/Update GitHub Release
-        if: needs.setup_release.outputs.publish_release == 'true' && secrets.GH_BOT_TOKEN != ''
+        if: needs.setup_release.outputs.publish_release == 'true' && github.event_name == 'release'
         uses: LizardByte/create-release-action@v2025.426.1549
         with:
           allowUpdates: true
