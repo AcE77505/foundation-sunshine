@@ -240,11 +240,17 @@ jobs:
       - name: Package Windows
         shell: msys2 {0}
         run: |
-          mkdir -p artifacts
+          mkdir -p artifacts/sunshine
           # Skip Inno Setup / CPack packaging which requires driver deps unavailable on forks.
-          # Directly copy the compiled binary and assets.
-          cp build/sunshine.exe artifacts/
-          echo "Binary size: $(stat -c%s build/sunshine.exe) bytes"
+          # Directly copy the compiled binary and required assets.
+          cp build/sunshine.exe artifacts/sunshine/
+          # Copy assets directory (apps.json, web UI, etc.)
+          cp -r build/assets artifacts/sunshine/ 2>/dev/null || echo "No build/assets dir, trying cmake install"
+          # Also try cmake install for proper file layout
+          cmake --install build --prefix ./artifacts/sunshine 2>/dev/null || true
+          echo "Artifacts:"
+          ls -la artifacts/sunshine/
+          ls -la artifacts/sunshine/assets/ 2>/dev/null || echo "No assets dir in output"
 
       - name: Generate Checksums
         shell: pwsh
@@ -279,15 +285,16 @@ jobs:
             NEWTAG="v${YEAR}.${DATE_PADDED}"
           fi
 
-          # rename the binary
-          mv artifacts/sunshine.exe "artifacts/Sunshine.${NEWTAG}.exe"
+          # rename and zip the full package
+          mv artifacts/sunshine "artifacts/Sunshine.${NEWTAG}"
+          cd artifacts && 7z a "Sunshine.${NEWTAG}.zip" "Sunshine.${NEWTAG}/"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: sunshine-windows-r${{ github.run_number }}
           path: |
-            artifacts/Sunshine.*.exe
+            artifacts/Sunshine.*.zip
           if-no-files-found: error
 
       - name: Create/Update GitHub Release
