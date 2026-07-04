@@ -241,21 +241,10 @@ jobs:
         shell: msys2 {0}
         run: |
           mkdir -p artifacts
-          cd build
-
-          # package - 生成 Inno Setup 安装包和 ZIP 便携版
-          # 先安装到 staging 目录
-          cmake --install . --prefix ./inno_staging
-          
-          # 运行 Inno Setup 编译器
-          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" sunshine_installer.iss
-          
-          # 生成 ZIP 便携版
-          cpack -G ZIP --config ./CPackConfig.cmake --verbose
-
-          # move
-          mv ./cpack_artifacts/Sunshine.exe ../artifacts/sunshine-windows-installer.exe
-          mv ./cpack_artifacts/Sunshine.zip ../artifacts/sunshine-windows-portable.zip
+          # Skip Inno Setup / CPack packaging which requires driver deps unavailable on forks.
+          # Directly copy the compiled binary and assets.
+          cp build/sunshine.exe artifacts/
+          echo "Binary size: $(stat -c%s build/sunshine.exe) bytes"
 
       - name: Generate Checksums
         shell: pwsh
@@ -290,19 +279,15 @@ jobs:
             NEWTAG="v${YEAR}.${DATE_PADDED}"
           fi
 
-          # 重命名安装包和便携版
-          mv artifacts/sunshine-windows-installer.exe "artifacts/Sunshine.${NEWTAG}.WindowsInstaller.exe"
-          mv artifacts/sunshine-windows-portable.zip "artifacts/Sunshine.${NEWTAG}.WindowsPortable.zip"
+          # rename the binary
+          mv artifacts/sunshine.exe "artifacts/Sunshine.${NEWTAG}.exe"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: sunshine-windows-r${{ github.run_number }}
           path: |
-            artifacts/Sunshine.*.WindowsInstaller.exe
-            artifacts/Sunshine.*.WindowsPortable.zip
-            artifacts/SHA256SUMS.txt
-            artifacts/checksums.json
+            artifacts/Sunshine.*.exe
           if-no-files-found: error
 
       - name: Create/Update GitHub Release
