@@ -240,17 +240,14 @@ jobs:
       - name: Package Windows
         shell: msys2 {0}
         run: |
+          set -x
           mkdir -p artifacts/sunshine
-          # Skip Inno Setup / CPack packaging which requires driver deps unavailable on forks.
-          # Directly copy the compiled binary and required assets.
           cp build/sunshine.exe artifacts/sunshine/
-          # Copy assets directory (apps.json, web UI, etc.)
-          cp -r build/assets artifacts/sunshine/ 2>/dev/null || echo "No build/assets dir, trying cmake install"
-          # Also try cmake install for proper file layout
-          cmake --install build --prefix ./artifacts/sunshine 2>/dev/null || true
-          echo "Artifacts:"
+          cmake --install build --prefix ./artifacts/sunshine
+          echo "=== Artifact contents ==="
           ls -la artifacts/sunshine/
-          ls -la artifacts/sunshine/assets/ 2>/dev/null || echo "No assets dir in output"
+          ls -la artifacts/sunshine/assets/ 2>/dev/null
+          ls -la artifacts/sunshine/assets/shaders/ 2>/dev/null || echo "No shaders dir"
 
       - name: Generate Checksums
         shell: pwsh
