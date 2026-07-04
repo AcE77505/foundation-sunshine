@@ -208,6 +208,7 @@ jobs:
             -DBUILD_DOCS=OFF \
             -DBUILD_WEB_UI=OFF \
             -DSUNSHINE_ASSETS_DIR=assets \
+            -DFETCH_DRIVER_DEPS=OFF \
             -DDRIVER_DEPS_REQUIRED=${DRIVER_DEPS_REQUIRED} \
             -DSUNSHINE_PUBLISHER_NAME='${{ github.repository_owner }}' \
             -DSUNSHINE_PUBLISHER_WEBSITE='https://github.com/AlkaidLab/foundation-sunshine' \
