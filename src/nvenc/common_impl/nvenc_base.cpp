@@ -6,6 +6,7 @@
 
 #include "nvenc_utils.h"
 
+#include "src/config.h"
 #include "src/utility.h"
 
 #include <algorithm>
@@ -456,10 +457,12 @@ namespace nvenc {
       vui_config.videoSignalTypePresentFlag = 1;
       vui_config.videoFormat = NV_ENC_VUI_VIDEO_FORMAT_UNSPECIFIED;
       vui_config.videoFullRangeFlag = colorspace.full_range;
-      vui_config.colourDescriptionPresentFlag = 1;
-      vui_config.colourPrimaries = colorspace.primaries;
-      vui_config.transferCharacteristics = colorspace.tranfer_function;
-      vui_config.colourMatrix = colorspace.matrix;
+      vui_config.colourDescriptionPresentFlag = config::video.vui_color_description ? 1 : 0;
+      if (config::video.vui_color_description) {
+        vui_config.colourPrimaries = colorspace.primaries;
+        vui_config.transferCharacteristics = colorspace.tranfer_function;
+        vui_config.colourMatrix = colorspace.matrix;
+      }
       vui_config.chromaSampleLocationFlag = buffer_is_yuv444() ? 0 : 1;
       vui_config.chromaSampleLocationTop = 0;
       vui_config.chromaSampleLocationBot = 0;

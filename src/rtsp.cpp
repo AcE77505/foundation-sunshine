@@ -1274,6 +1274,10 @@ namespace rtsp_stream {
       monitor.slicesPerFrame = getArg("x-nv-video[0].videoEncoderSlicesPerFrame"sv);
       monitor.numRefFrames = getArg("x-nv-video[0].maxNumReferenceFrames"sv);
       monitor.encoderCscMode = getArg("x-nv-video[0].encoderCscMode"sv);
+      if (config::video.encoder_csc_mode >= 0) {
+        BOOST_LOG(info) << "Overriding client encoderCscMode ["sv << monitor.encoderCscMode << "] with server config ["sv << config::video.encoder_csc_mode << "]"sv;
+        monitor.encoderCscMode = config::video.encoder_csc_mode;
+      }
       monitor.videoFormat = getArg("x-nv-vqos[0].bitStreamFormat"sv);
       monitor.dynamicRange = getArg("x-nv-video[0].dynamicRangeMode"sv);
       monitor.chromaSamplingType = getArg("x-ss-video[0].chromaSamplingType"sv);

@@ -133,6 +133,8 @@ namespace config {
     int input_activity_boost_fps;  // Minimum FPS floor to maintain during the input activity boost window
     int input_activity_boost_window_ms;  // Duration of the input activity boost window in milliseconds
     std::string downscaling_quality;  // Downscaling quality: "fast" (bilinear+8pt), "balanced" (bicubic), "high_quality" (future: lanczos)
+    int encoder_csc_mode;  // Override client's encoderCscMode (-1=use client, 0-5=force value)
+    bool vui_color_description;  // Write VUI color description in bitstream (default true; disable for decoders with color quirks)
     bool hdr_luminance_analysis;  // Enable per-frame HDR luminance analysis for dynamic metadata
     std::string capture_compute_shader;  // Use compute shader for HDR RGB->P010 conversion: "auto" (off for now), "on", "off"
     bool wgc_disable_secure_desktop;  // Auto-disable UAC secure desktop when using WGC capture

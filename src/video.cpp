@@ -2189,9 +2189,11 @@ namespace video {
       auto avcodec_colorspace = avcodec_colorspace_from_sunshine_colorspace(colorspace);
 
       ctx->color_range = avcodec_colorspace.range;
-      ctx->color_primaries = avcodec_colorspace.primaries;
-      ctx->color_trc = avcodec_colorspace.transfer_function;
-      ctx->colorspace = avcodec_colorspace.matrix;
+      if (config::video.vui_color_description) {
+        ctx->color_primaries = avcodec_colorspace.primaries;
+        ctx->color_trc = avcodec_colorspace.transfer_function;
+        ctx->colorspace = avcodec_colorspace.matrix;
+      }
 
       // Used by cbs::make_sps_hevc
       ctx->sw_pix_fmt = sw_fmt;
